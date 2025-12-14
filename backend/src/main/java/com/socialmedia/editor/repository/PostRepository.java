@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -15,6 +16,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByUserOrderByCreatedAtDesc(User user);
 
     List<Post> findByUserAndStatus(User user, Post.PostStatus status);
+
+    Optional<Post> findByIdAndUser(Long id, User user);
 
     @Query("SELECT COUNT(p) FROM Post p WHERE p.user = :user")
     Long getTotalPostCountByUser(User user);

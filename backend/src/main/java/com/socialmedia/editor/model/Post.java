@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -27,6 +27,9 @@ public class Post {
     @Column(length = 500)
     private String title;
 
+    @Column(columnDefinition = "TEXT")
+    private String references;
+
     @Column(name = "image_url")
     private String imageUrl;
 
@@ -37,11 +40,8 @@ public class Post {
     @Column(nullable = false)
     private PostStatus status = PostStatus.DRAFT;
 
-    @ElementCollection(targetClass = SocialMediaAccount.Platform.class)
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "post_platforms", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "platform")
-    private Set<SocialMediaAccount.Platform> targetPlatforms = new HashSet<>();
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PostPlatform> platforms = new ArrayList<>();
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
@@ -119,6 +119,14 @@ public class Post {
         this.title = title;
     }
 
+    public String getReferences() {
+        return references;
+    }
+
+    public void setReferences(String references) {
+        this.references = references;
+    }
+
     public String getImageUrl() {
         return imageUrl;
     }
@@ -143,12 +151,12 @@ public class Post {
         this.status = status;
     }
 
-    public Set<SocialMediaAccount.Platform> getTargetPlatforms() {
-        return targetPlatforms;
+    public List<PostPlatform> getPlatforms() {
+        return platforms;
     }
 
-    public void setTargetPlatforms(Set<SocialMediaAccount.Platform> targetPlatforms) {
-        this.targetPlatforms = targetPlatforms;
+    public void setPlatforms(List<PostPlatform> platforms) {
+        this.platforms = platforms;
     }
 
     public LocalDateTime getPublishedAt() {
