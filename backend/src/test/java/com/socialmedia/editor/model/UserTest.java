@@ -36,8 +36,10 @@ class UserTest {
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("username");
+        assertThat(violations).hasSize(2); // NotBlank and Size validation
+        assertThat(violations.stream()
+                .anyMatch(v -> v.getPropertyPath().toString().equals("username")))
+                .isTrue();
     }
 
     @Test
@@ -76,10 +78,8 @@ class UserTest {
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
-        assertThat(violations).hasSize(2); // NotBlank and Email validation
-        assertThat(violations.stream()
-                .anyMatch(v -> v.getPropertyPath().toString().equals("email")))
-                .isTrue();
+        assertThat(violations).hasSize(1); // Only NotBlank since empty string is invalid email format
+        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("email");
     }
 
     @Test
@@ -109,8 +109,10 @@ class UserTest {
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("password");
+        assertThat(violations).hasSize(2); // NotBlank and Size validation
+        assertThat(violations.stream()
+                .anyMatch(v -> v.getPropertyPath().toString().equals("password")))
+                .isTrue();
     }
 
     @Test
@@ -146,7 +148,7 @@ class UserTest {
     @Test
     void createUser_WithMaximumValidLength_ShouldPassValidation() {
         String maxUsername = "a".repeat(20);
-        String maxEmail = "a".repeat(42) + "@test.com"; // 50 characters total
+        String maxEmail = "a".repeat(41) + "@test.com"; // 50 characters total
         String maxPassword = "a".repeat(120);
         User user = new User(maxUsername, maxEmail, maxPassword);
 

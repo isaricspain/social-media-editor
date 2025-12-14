@@ -1,0 +1,10 @@
+com/socialmedia/editor/controller/AuthControllerIntegrationTest.class
+com/socialmedia/editor/util/TestDataBuilder.class
+com/socialmedia/editor/util/TestDataBuilder$UserBuilder.class
+com/socialmedia/editor/util/TestDataBuilder$RegisterRequestBuilder.class
+com/socialmedia/editor/repository/UserRepositoryTest.class
+com/socialmedia/editor/util/TestDataBuilder$LoginRequestBuilder.class
+com/socialmedia/editor/config/TestSecurityConfig.class
+com/socialmedia/editor/controller/AuthControllerTest.class
+com/socialmedia/editor/model/UserTest.class
+com/socialmedia/editor/service/AuthServiceTest.class

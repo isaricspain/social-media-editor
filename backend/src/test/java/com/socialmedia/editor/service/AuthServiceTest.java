@@ -33,7 +33,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        ReflectionTestUtils.setField(authService, "jwtSecret", "testSecretKeyForTesting");
+        ReflectionTestUtils.setField(authService, "jwtSecret", "testSecretKeyForTestingThatIs32CharactersLong!");
         ReflectionTestUtils.setField(authService, "jwtExpirationMs", 86400000);
     }
 

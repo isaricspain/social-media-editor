@@ -8,19 +8,22 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
-    show-sql: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   h2:
     console:
-      enabled: false
-  sql:
-    init:
-      mode: never
+      enabled: true
+
+server:
+  port: 8080
 
 jwt:
-  secret: testSecretKeyForTestingThatIs32CharactersLong!
+  secret: mySecretKey
   expiration: 86400000
 
 logging:
   level:
-    org.springframework.web: DEBUG
     com.socialmedia.editor: DEBUG
+    org.springframework.web: DEBUG
