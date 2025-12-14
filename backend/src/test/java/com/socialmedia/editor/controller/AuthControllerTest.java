@@ -2,6 +2,7 @@ package com.socialmedia.editor.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.socialmedia.editor.model.User;
+import com.socialmedia.editor.repository.UserRepository;
 import com.socialmedia.editor.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

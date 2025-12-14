@@ -30,26 +30,29 @@ public class PostService {
         return postRepository.findByUserAndStatus(user, Post.PostStatus.PUBLISHED);
     }
 
-    public Post createPost(User user, String content, String title,
-                          Set<SocialMediaAccount.Platform> targetPlatforms) {
+    public Post createPost(User user, String content, String title, String references) {
         Post post = new Post(user, content, Post.PostStatus.DRAFT);
         post.setTitle(title);
-        post.setTargetPlatforms(targetPlatforms);
+        post.setReferences(references);
         return postRepository.save(post);
     }
 
-    public Post updatePost(Long postId, String content, String title,
-                          Set<SocialMediaAccount.Platform> targetPlatforms, User user) {
-        Optional<Post> postOpt = postRepository.findById(postId);
+    public Post updatePost(Long postId, String content, String title, String references, User user) {
+        Optional<Post> postOpt = postRepository.findByIdAndUser(postId, user);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();
-            if (!post.getUser().getId().equals(user.getId())) {
-                throw new RuntimeException("Unauthorized to update this post");
-            }
             post.setContent(content);
             post.setTitle(title);
-            post.setTargetPlatforms(targetPlatforms);
+            post.setReferences(references);
             return postRepository.save(post);
+        }
+        throw new RuntimeException("Post not found");
+    }
+
+    public Post getPostById(Long postId, User user) {
+        Optional<Post> postOpt = postRepository.findByIdAndUser(postId, user);
+        if (postOpt.isPresent()) {
+            return postOpt.get();
         }
         throw new RuntimeException("Post not found");
     }
