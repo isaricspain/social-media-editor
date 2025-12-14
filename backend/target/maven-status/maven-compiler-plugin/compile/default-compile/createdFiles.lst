@@ -1,0 +1,8 @@
+com/socialmedia/editor/repository/UserRepository.class
+com/socialmedia/editor/controller/AuthController$RegisterRequest.class
+com/socialmedia/editor/config/SecurityConfig.class
+com/socialmedia/editor/model/User.class
+com/socialmedia/editor/controller/AuthController.class
+com/socialmedia/editor/controller/AuthController$LoginRequest.class
+com/socialmedia/editor/SocialMediaEditorApplication.class
+com/socialmedia/editor/service/AuthService.class
