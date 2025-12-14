@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import LoginScreen from './components/LoginScreen';
+import Dashboard from './components/Dashboard';
 
 const theme = createTheme({
   palette: {
@@ -35,11 +36,7 @@ function App() {
       {!isLoggedIn ? (
         <LoginScreen onLoginSuccess={handleLoginSuccess} />
       ) : (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h1>Welcome to Social Media Editor!</h1>
-          <p>Hello, {user?.username}!</p>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
+        <Dashboard user={user} onLogout={handleLogout} />
       )}
     </ThemeProvider>
   );
