@@ -1,12 +1,16 @@
-name: Gradle Build
+name: Maven Build (backend)
 
 on:
-  - push
-  - pull_request
+  push:
+    paths:
+      - 'backend/**'
+  pull_request:
+    paths:
+      - 'backend/**'
 
 jobs:
   build:
-    name: Build with Gradle
+    name: Build backend with Maven
     runs-on: ubuntu-latest
 
     steps:
@@ -17,11 +21,9 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
-          cache: gradle
+          java-version: '17' # change if your project requires a different Java version
+          cache: maven
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Build (gradlew)
-        run: ./gradlew build --no-daemon
+      - name: Build with Maven
+        working-directory: backend
+        run: mvn -B -ntp clean verify
