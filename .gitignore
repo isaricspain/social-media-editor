@@ -25,3 +25,4 @@ replay_pid*
 
 frontend/node_modules/**
 backend/target/**
+.idea
