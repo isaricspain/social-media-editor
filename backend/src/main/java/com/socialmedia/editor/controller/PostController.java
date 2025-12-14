@@ -64,6 +64,21 @@ public class PostController {
         }
     }
 
+    @GetMapping("/{postId}")
+    public ResponseEntity<Post> getPost(@PathVariable Long postId, Authentication authentication) {
+        try {
+            User user = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Post post = postService.getPostById(postId, user);
+            return ResponseEntity.ok(post);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody CreatePostRequest request,
                                       Authentication authentication) {
@@ -72,7 +87,7 @@ public class PostController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             Post post = postService.createPost(user, request.getContent(), request.getTitle(),
-                    request.getTargetPlatforms());
+                    request.getReferences());
             return ResponseEntity.ok(post);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to create post");
@@ -88,7 +103,7 @@ public class PostController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             Post post = postService.updatePost(postId, request.getContent(), request.getTitle(),
-                    request.getTargetPlatforms(), user);
+                    request.getReferences(), user);
             return ResponseEntity.ok(post);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -149,7 +164,7 @@ public class PostController {
     public static class CreatePostRequest {
         private String content;
         private String title;
-        private Set<SocialMediaAccount.Platform> targetPlatforms;
+        private String references;
 
         public String getContent() {
             return content;
@@ -167,19 +182,19 @@ public class PostController {
             this.title = title;
         }
 
-        public Set<SocialMediaAccount.Platform> getTargetPlatforms() {
-            return targetPlatforms;
+        public String getReferences() {
+            return references;
         }
 
-        public void setTargetPlatforms(Set<SocialMediaAccount.Platform> targetPlatforms) {
-            this.targetPlatforms = targetPlatforms;
+        public void setReferences(String references) {
+            this.references = references;
         }
     }
 
     public static class UpdatePostRequest {
         private String content;
         private String title;
-        private Set<SocialMediaAccount.Platform> targetPlatforms;
+        private String references;
 
         public String getContent() {
             return content;
@@ -197,12 +212,12 @@ public class PostController {
             this.title = title;
         }
 
-        public Set<SocialMediaAccount.Platform> getTargetPlatforms() {
-            return targetPlatforms;
+        public String getReferences() {
+            return references;
         }
 
-        public void setTargetPlatforms(Set<SocialMediaAccount.Platform> targetPlatforms) {
-            this.targetPlatforms = targetPlatforms;
+        public void setReferences(String references) {
+            this.references = references;
         }
     }
 
