@@ -1,8 +1,11 @@
 package com.socialmedia.editor.service;
 
+import com.socialmedia.editor.dto.LinkedInStatsDto;
 import com.socialmedia.editor.model.SocialMediaAccount;
 import com.socialmedia.editor.model.User;
 import com.socialmedia.editor.repository.SocialMediaAccountRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +15,13 @@ import java.util.Optional;
 @Service
 public class SocialMediaService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SocialMediaService.class);
+
     @Autowired
     private SocialMediaAccountRepository socialMediaAccountRepository;
+
+    @Autowired
+    private LinkedInConnectorService linkedInConnectorService;
 
     public List<SocialMediaAccount> getActiveAccountsByUser(User user) {
         return socialMediaAccountRepository.findByUserAndIsActiveTrue(user);
@@ -128,9 +136,67 @@ public class SocialMediaService {
     }
 
     private void refreshLinkedInStats(SocialMediaAccount account) {
-        account.setFollowersCount(account.getFollowersCount() != null ? account.getFollowersCount() : 0L);
-        account.setFollowingCount(account.getFollowingCount() != null ? account.getFollowingCount() : 0L);
-        account.setPostsCount(account.getPostsCount() != null ? account.getPostsCount() : 0L);
-        socialMediaAccountRepository.save(account);
+        try {
+            if (account.getAccessToken() == null) {
+                logger.warn("No access token found for LinkedIn account: {}", account.getId());
+                return;
+            }
+
+            boolean isTokenValid = linkedInConnectorService.validateAccessToken(account.getAccessToken());
+            if (!isTokenValid) {
+                logger.info("LinkedIn access token invalid, attempting refresh for account: {}", account.getId());
+
+                if (account.getRefreshToken() != null) {
+                    try {
+                        var tokenResponse = linkedInConnectorService
+                                .refreshAccessToken(account.getRefreshToken())
+                                .block();
+
+                        if (tokenResponse != null && tokenResponse.getAccessToken() != null) {
+                            account.setAccessToken(tokenResponse.getAccessToken());
+                            if (tokenResponse.getRefreshToken() != null) {
+                                account.setRefreshToken(tokenResponse.getRefreshToken());
+                            }
+                            logger.info("Successfully refreshed LinkedIn token for account: {}", account.getId());
+                        } else {
+                            logger.error("Failed to refresh LinkedIn token for account: {}", account.getId());
+                            return;
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error refreshing LinkedIn token for account: {}", account.getId(), e);
+                        return;
+                    }
+                } else {
+                    logger.warn("No refresh token available for LinkedIn account: {}", account.getId());
+                    return;
+                }
+            }
+
+            LinkedInStatsDto stats = linkedInConnectorService
+                    .getUserStats(account.getAccessToken())
+                    .block();
+
+            if (stats != null) {
+                account.setFollowersCount(stats.getFollowersCount());
+                account.setFollowingCount(stats.getEffectiveConnectionsCount());
+                account.setPostsCount(0L);
+                logger.info("Updated LinkedIn stats for account: {} - Followers: {}, Connections: {}",
+                        account.getId(), stats.getFollowersCount(), stats.getEffectiveConnectionsCount());
+            } else {
+                logger.warn("Could not fetch LinkedIn stats for account: {}", account.getId());
+                account.setFollowersCount(account.getFollowersCount() != null ? account.getFollowersCount() : 0L);
+                account.setFollowingCount(account.getFollowingCount() != null ? account.getFollowingCount() : 0L);
+                account.setPostsCount(0L);
+            }
+
+            socialMediaAccountRepository.save(account);
+
+        } catch (Exception e) {
+            logger.error("Error refreshing LinkedIn stats for account: {}", account.getId(), e);
+            account.setFollowersCount(account.getFollowersCount() != null ? account.getFollowersCount() : 0L);
+            account.setFollowingCount(account.getFollowingCount() != null ? account.getFollowingCount() : 0L);
+            account.setPostsCount(account.getPostsCount() != null ? account.getPostsCount() : 0L);
+            socialMediaAccountRepository.save(account);
+        }
     }
 }

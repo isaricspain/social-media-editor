@@ -11,7 +11,12 @@ import {
   CircularProgress,
   Alert,
   IconButton,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   Facebook,
@@ -23,12 +28,15 @@ import {
   TrendingUp,
   Article,
   Schedule,
-  Publish
+  Publish,
+  AutoAwesome
 } from '@mui/icons-material';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import dashboardService from '../services/dashboardService';
 import PostStatistics from './PostStatistics';
 import SocialAccountCard from './SocialAccountCard';
+import AIContentGenerator from './AIContentGenerator';
+import AIToolbar from './AIToolbar';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -36,6 +44,9 @@ const Dashboard = ({ user, onLogout }) => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [quickPostDialogOpen, setQuickPostDialogOpen] = useState(false);
+  const [quickPostContent, setQuickPostContent] = useState('');
 
   useEffect(() => {
     loadDashboardData();
@@ -61,6 +72,25 @@ const Dashboard = ({ user, onLogout }) => {
     } catch (err) {
       setError('Failed to refresh account stats');
     }
+  };
+
+  const handleContentGenerated = (content) => {
+    setQuickPostContent(content);
+  };
+
+  const handleContentUpdated = (content) => {
+    setQuickPostContent(content);
+  };
+
+  const handleCreatePost = () => {
+    setQuickPostDialogOpen(true);
+    setQuickPostContent('');
+  };
+
+  const handleSaveQuickPost = () => {
+    console.log('Saving quick post:', quickPostContent);
+    setQuickPostDialogOpen(false);
+    setQuickPostContent('');
   };
 
   if (loading) {
@@ -99,6 +129,19 @@ const Dashboard = ({ user, onLogout }) => {
           Dashboard
         </Typography>
         <Box>
+          <Tooltip title="AI Content Generator">
+            <IconButton
+              onClick={() => setShowAIGenerator(!showAIGenerator)}
+              sx={{ mr: 1, color: showAIGenerator ? 'primary.main' : 'default' }}
+            >
+              <AutoAwesome />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Quick Create Post">
+            <IconButton onClick={handleCreatePost} sx={{ mr: 1 }}>
+              <Add />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Refresh Stats">
             <IconButton onClick={handleRefresh} sx={{ mr: 1 }}>
               <Refresh />
@@ -113,6 +156,60 @@ const Dashboard = ({ user, onLogout }) => {
       <Typography variant="h6" color="text.secondary" mb={4}>
         Welcome back, {user?.username}!
       </Typography>
+
+      {/* AI Content Generator Panel */}
+      {showAIGenerator && (
+        <Card sx={{ mb: 3, border: '2px solid #e3f2fd' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AutoAwesome color="primary" />
+              AI Content Generator
+            </Typography>
+            <AIContentGenerator onContentGenerated={handleContentGenerated} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Post Creation Dialog */}
+      <Dialog
+        open={quickPostDialogOpen}
+        onClose={() => setQuickPostDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Create New Post</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            multiline
+            rows={4}
+            fullWidth
+            label="Post Content"
+            variant="outlined"
+            value={quickPostContent}
+            onChange={(e) => setQuickPostContent(e.target.value)}
+            sx={{ mt: 2, mb: 2 }}
+          />
+          {quickPostContent && (
+            <AIToolbar
+              content={quickPostContent}
+              onContentUpdated={handleContentUpdated}
+              tone="neutral"
+              platform="general"
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setQuickPostDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleSaveQuickPost}
+            variant="contained"
+            disabled={!quickPostContent.trim()}
+          >
+            Save Post
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={3}>
