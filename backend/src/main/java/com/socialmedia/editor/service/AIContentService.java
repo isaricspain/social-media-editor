@@ -1,20 +1,15 @@
 package com.socialmedia.editor.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.socialmedia.editor.config.GeminiConfig;
 import com.socialmedia.editor.dto.AIContentRequest;
 import com.socialmedia.editor.dto.AIContentResponse;
+import com.google.ai.client.generativeai.GenerativeModel;
+import com.google.ai.client.generativeai.type.GenerateContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -26,12 +21,10 @@ public class AIContentService {
     private static final Logger logger = LoggerFactory.getLogger(AIContentService.class);
 
     @Autowired
-    private WebClient geminiWebClient;
+    private GenerativeModel generativeModel;
 
     @Autowired
     private GeminiConfig geminiConfig;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AIContentResponse generateContent(AIContentRequest request) {
         try {

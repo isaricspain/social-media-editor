@@ -3,7 +3,7 @@ package com.socialmedia.editor.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
+import com.google.ai.client.generativeai.GenerativeModel;
 
 @Configuration
 public class GeminiConfig {
@@ -21,11 +21,8 @@ public class GeminiConfig {
     private int maxTokens;
 
     @Bean
-    public WebClient geminiWebClient() {
-        return WebClient.builder()
-                .baseUrl("https://generativelanguage.googleapis.com/v1beta")
-                .defaultHeader("Content-Type", "application/json")
-                .build();
+    public GenerativeModel generativeModel() {
+        return new GenerativeModel(model, apiKey);
     }
 
     public String getApiKey() {
