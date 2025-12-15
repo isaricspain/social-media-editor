@@ -3,13 +3,16 @@ package com.socialmedia.editor.controller;
 import com.socialmedia.editor.model.SocialMediaAccount;
 import com.socialmedia.editor.model.User;
 import com.socialmedia.editor.repository.UserRepository;
+import com.socialmedia.editor.service.LinkedInConnectorService;
 import com.socialmedia.editor.service.SocialMediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/social-media")
@@ -21,6 +24,9 @@ public class SocialMediaController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private LinkedInConnectorService linkedInConnectorService;
 
     @GetMapping("/accounts")
     public ResponseEntity<List<SocialMediaAccount>> getAccounts(Authentication authentication) {
@@ -39,6 +45,14 @@ public class SocialMediaController {
     public ResponseEntity<?> connectAccount(@RequestBody ConnectAccountRequest request,
                                           Authentication authentication) {
         try {
+            if (request.getPlatform() == SocialMediaAccount.Platform.LINKEDIN) {
+                String authorizationUrl = linkedInConnectorService.getAuthorizationUrl();
+                Map<String, String> response = new HashMap<>();
+                response.put("authorizationUrl", authorizationUrl);
+                response.put("platform", "LINKEDIN");
+                return ResponseEntity.ok(response);
+            }
+
             User user = userRepository.findByUsername(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 

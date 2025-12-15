@@ -23,3 +23,16 @@ server:
 jwt:
   secret: LEQKURJkfvdf5i78rExaBkudqn5Pr65i
   expiration: 86400000
+
+gemini:
+  api-key: ${GEMINI_API_KEY:your-api-key-here}
+  model: gemini-1.5-flash-latest
+  temperature: 0.7
+  max-tokens: 1000
+
+linkedin:
+  oauth:
+    client-id: ${LINKEDIN_CLIENT_ID:your-client-id}
+    client-secret: ${LINKEDIN_CLIENT_SECRET:your-client-secret}
+    redirect-uri: ${LINKEDIN_REDIRECT_URI:http://localhost:8080/api/oauth/linkedin/callback}
+    scope: r_liteprofile,r_emailaddress,w_member_social
