@@ -21,7 +21,7 @@ server:
   port: 8080
 
 jwt:
-  secret: mySecretKey
+  secret: LEQKURJkfvdf5i78rExaBkudqn5Pr65i
   expiration: 86400000
 
 gemini:

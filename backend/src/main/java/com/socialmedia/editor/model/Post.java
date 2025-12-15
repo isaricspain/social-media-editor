@@ -27,7 +27,7 @@ public class Post {
     @Column(length = 500)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", name = "refs")
     private String references;
 
     @Column(name = "image_url")

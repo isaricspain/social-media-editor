@@ -1,0 +1,29 @@
+name: Maven Build (backend)
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+  pull_request:
+    paths:
+      - 'backend/**'
+
+jobs:
+  build:
+    name: Build backend with Maven
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17' # change if your project requires a different Java version
+          cache: maven
+
+      - name: Build with Maven
+        working-directory: backend
+        run: mvn -B -ntp clean verify
