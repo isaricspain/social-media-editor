@@ -40,8 +40,8 @@ const AIContentGenerator = ({ onContentGenerated, existingContent = '' }) => {
       } else {
         setError(response.errorMessage || 'Failed to generate content');
       }
-    } catch (error) {
-      setError('Error generating content: ' + (error.errorMessage || error));
+    } catch (err) {
+      setError(`Error generating content: ${err.errorMessage || err}`);
     } finally {
       setLoading(false);
     }
@@ -75,8 +75,8 @@ const AIContentGenerator = ({ onContentGenerated, existingContent = '' }) => {
       } else {
         setError(response.errorMessage || 'Failed to improve content');
       }
-    } catch (error) {
-      setError('Error improving content: ' + (error.errorMessage || error));
+    } catch (err) {
+      setError(`Error improving content: ${err.errorMessage || err}`);
     } finally {
       setLoading(false);
     }
@@ -106,8 +106,8 @@ const AIContentGenerator = ({ onContentGenerated, existingContent = '' }) => {
       } else {
         setError(response.errorMessage || 'Failed to generate hashtags');
       }
-    } catch (error) {
-      setError('Error generating hashtags: ' + (error.errorMessage || error));
+    } catch (err) {
+      setError(`Error generating hashtags: ${err.errorMessage || err}`);
     } finally {
       setLoading(false);
     }
@@ -139,14 +139,14 @@ const AIContentGenerator = ({ onContentGenerated, existingContent = '' }) => {
       } else {
         setError(response.errorMessage || 'Failed to generate variations');
       }
-    } catch (error) {
-      setError('Error generating variations: ' + (error.errorMessage || error));
+    } catch (err) {
+      setError(`Error generating variations: ${err.errorMessage || err}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const useVariation = (variation) => {
+  const applyVariation = (variation) => {
     setGeneratedContent(variation);
     if (onContentGenerated) {
       onContentGenerated(variation);
@@ -345,7 +345,7 @@ const AIContentGenerator = ({ onContentGenerated, existingContent = '' }) => {
                 {variation}
               </div>
               <button
-                onClick={() => useVariation(variation)}
+                onClick={() => applyVariation(variation)}
                 style={{
                   padding: '4px 8px',
                   fontSize: '0.8em',
