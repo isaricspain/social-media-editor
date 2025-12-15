@@ -1,10 +1,8 @@
 package com.socialmedia.editor.service;
 
-import com.socialmedia.editor.config.GeminiConfig;
 import com.socialmedia.editor.dto.AIContentRequest;
 import com.socialmedia.editor.dto.AIContentResponse;
-import com.google.ai.client.generativeai.GenerativeModel;
-import com.google.ai.client.generativeai.type.GenerateContentResponse;
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +19,12 @@ public class AIContentService {
     private static final Logger logger = LoggerFactory.getLogger(AIContentService.class);
 
     @Autowired
-    private GenerativeModel generativeModel;
-
-    @Autowired
-    private GeminiConfig geminiConfig;
+    private ChatLanguageModel chatLanguageModel;
 
     public AIContentResponse generateContent(AIContentRequest request) {
         try {
             String prompt = buildPrompt(request);
-            String generatedText = callGeminiAPI(prompt);
+            String generatedText = chatLanguageModel.generate(prompt);
 
             AIContentResponse response = new AIContentResponse(generatedText);
             response.setTone(request.getTone());
@@ -45,7 +40,7 @@ public class AIContentService {
     public AIContentResponse improveContent(AIContentRequest request) {
         try {
             String prompt = buildImprovePrompt(request);
-            String improvedText = callGeminiAPI(prompt);
+            String improvedText = chatLanguageModel.generate(prompt);
 
             AIContentResponse response = new AIContentResponse(improvedText);
             response.setTone(request.getTone());
@@ -61,7 +56,7 @@ public class AIContentService {
     public AIContentResponse generateHashtags(AIContentRequest request) {
         try {
             String prompt = buildHashtagPrompt(request);
-            String hashtagText = callGeminiAPI(prompt);
+            String hashtagText = chatLanguageModel.generate(prompt);
 
             List<String> hashtags = extractHashtags(hashtagText);
 
@@ -79,7 +74,7 @@ public class AIContentService {
     public AIContentResponse generateVariations(AIContentRequest request) {
         try {
             String prompt = buildVariationsPrompt(request);
-            String variationsText = callGeminiAPI(prompt);
+            String variationsText = chatLanguageModel.generate(prompt);
 
             List<String> variations = Arrays.asList(variationsText.split("\n\n"));
 
@@ -95,68 +90,7 @@ public class AIContentService {
         }
     }
 
-    private String callGeminiAPI(String prompt) throws Exception {
-        try {
-            ObjectNode requestBody = objectMapper.createObjectNode();
-
-            ArrayNode contents = objectMapper.createArrayNode();
-            ObjectNode content = objectMapper.createObjectNode();
-            ArrayNode parts = objectMapper.createArrayNode();
-            ObjectNode part = objectMapper.createObjectNode();
-            part.put("text", prompt);
-            parts.add(part);
-            content.set("parts", parts);
-            contents.add(content);
-            requestBody.set("contents", contents);
-
-            ObjectNode generationConfig = objectMapper.createObjectNode();
-            generationConfig.put("temperature", geminiConfig.getTemperature());
-            generationConfig.put("maxOutputTokens", geminiConfig.getMaxTokens());
-            requestBody.set("generationConfig", generationConfig);
-
-            ArrayNode safetySettings = objectMapper.createArrayNode();
-            ObjectNode harassment = objectMapper.createObjectNode();
-            harassment.put("category", "HARM_CATEGORY_HARASSMENT");
-            harassment.put("threshold", "BLOCK_MEDIUM_AND_ABOVE");
-            safetySettings.add(harassment);
-            requestBody.set("safetySettings", safetySettings);
-
-            String url = "/models/" + geminiConfig.getModel() + ":generateContent?key=" + geminiConfig.getApiKey();
-
-            Mono<String> responseMono = geminiWebClient
-                    .post()
-                    .uri(url)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(30));
-
-            String responseBody = responseMono.block();
-
-            JsonNode responseJson = objectMapper.readTree(responseBody);
-            JsonNode candidates = responseJson.get("candidates");
-
-            if (candidates != null && candidates.isArray() && candidates.size() > 0) {
-                JsonNode firstCandidate = candidates.get(0);
-                JsonNode content = firstCandidate.get("content");
-                if (content != null) {
-                    JsonNode parts = content.get("parts");
-                    if (parts != null && parts.isArray() && parts.size() > 0) {
-                        JsonNode firstPart = parts.get(0);
-                        JsonNode text = firstPart.get("text");
-                        if (text != null) {
-                            return text.asText();
-                        }
-                    }
-                }
-            }
-
-            throw new RuntimeException("No content generated from Gemini API");
-        } catch (Exception e) {
-            logger.error("Error calling Gemini API: {}", e.getMessage());
-            throw new RuntimeException("Failed to call Gemini API: " + e.getMessage());
-        }
-    }
+    // LangChain4j handles API invocation; no manual HTTP/JSON required
 
     private String buildPrompt(AIContentRequest request) {
         StringBuilder prompt = new StringBuilder();

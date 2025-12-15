@@ -1,9 +1,10 @@
 package com.socialmedia.editor.config;
 
+import com.socialmedia.editor.ai.GoogleGeminiChatModel;
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.google.ai.client.generativeai.GenerativeModel;
 
 @Configuration
 public class GeminiConfig {
@@ -11,18 +12,23 @@ public class GeminiConfig {
     @Value("${gemini.api-key}")
     private String apiKey;
 
-    @Value("${gemini.model}")
+    @Value("${gemini.model:gemini-1.5-flash}")
     private String model;
 
-    @Value("${gemini.temperature}")
+    @Value("${gemini.temperature:0.2}")
     private double temperature;
 
-    @Value("${gemini.max-tokens}")
+    @Value("${gemini.max-tokens:1024}")
     private int maxTokens;
 
     @Bean
-    public GenerativeModel generativeModel() {
-        return new GenerativeModel(model, apiKey);
+    public ChatLanguageModel chatLanguageModel() {
+        return GoogleGeminiChatModel.builder()
+                .apiKey(apiKey)
+                .modelName(model)
+                .temperature(temperature)
+                .maxOutputTokens(maxTokens)
+                .build();
     }
 
     public String getApiKey() {
