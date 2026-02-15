@@ -3,7 +3,7 @@ package com.socialmedia.editor.controller;
 import com.socialmedia.editor.model.PlatformSettings;
 import com.socialmedia.editor.model.SocialMediaAccount;
 import com.socialmedia.editor.model.User;
-import com.socialmedia.editor.repository.UserRepository;
+import com.socialmedia.editor.service.AuthService;
 import com.socialmedia.editor.service.PlatformSettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +18,19 @@ import java.util.Optional;
 @CrossOrigin(origins = "http://localhost:3000")
 public class PlatformSettingsController {
 
-    @Autowired
-    private PlatformSettingsService platformSettingsService;
+    private final PlatformSettingsService platformSettingsService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
+
+    public PlatformSettingsController(PlatformSettingsService platformSettingsService, AuthService authService) {
+        this.platformSettingsService = platformSettingsService;
+        this.authService = authService;
+    }
 
     @GetMapping
     public ResponseEntity<List<PlatformSettings>> getPlatformSettings(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             List<PlatformSettings> settings = platformSettingsService.getUserPlatformSettings(user);
             return ResponseEntity.ok(settings);
@@ -41,8 +43,7 @@ public class PlatformSettingsController {
     public ResponseEntity<PlatformSettings> getPlatformSetting(@PathVariable SocialMediaAccount.Platform platform,
                                                               Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             Optional<PlatformSettings> setting = platformSettingsService.getPlatformSetting(user, platform);
             if (setting.isPresent()) {
@@ -60,8 +61,7 @@ public class PlatformSettingsController {
                                                           @RequestBody PlatformSettingRequest request,
                                                           Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             PlatformSettings setting = platformSettingsService.createOrUpdatePlatformSetting(
                     user, platform, request.getDefaultPrompt());
@@ -76,8 +76,7 @@ public class PlatformSettingsController {
                                                @RequestBody PlatformSettingRequest request,
                                                Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             PlatformSettings setting = platformSettingsService.updateDefaultPrompt(
                     user, platform, request.getDefaultPrompt());
@@ -93,8 +92,7 @@ public class PlatformSettingsController {
     public ResponseEntity<String> deletePlatformSetting(@PathVariable SocialMediaAccount.Platform platform,
                                                        Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             platformSettingsService.deletePlatformSetting(user, platform);
             return ResponseEntity.ok("Platform setting deleted successfully");

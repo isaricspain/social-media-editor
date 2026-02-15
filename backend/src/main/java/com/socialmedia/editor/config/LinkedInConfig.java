@@ -3,6 +3,10 @@ package com.socialmedia.editor.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Configuration
 @ConfigurationProperties(prefix = "linkedin.oauth")
 public class LinkedInConfig {
@@ -10,7 +14,8 @@ public class LinkedInConfig {
     private String clientId;
     private String clientSecret;
     private String redirectUri;
-    private String scope = "r_liteprofile,r_emailaddress,w_member_social";
+    // LinkedIn requires space-delimited scopes; commas are invalid
+    private String scope = "r_liteprofile r_emailaddress w_member_social";
     private String authorizationUri = "https://www.linkedin.com/oauth/v2/authorization";
     private String tokenUri = "https://www.linkedin.com/oauth/v2/accessToken";
     private String apiBaseUrl = "https://api.linkedin.com/v2";
@@ -72,7 +77,18 @@ public class LinkedInConfig {
     }
 
     public String getAuthorizationUrl() {
+        String encodedRedirect = urlEncode(redirectUri);
+        String encodedScope = urlEncode(scope);
         return String.format("%s?response_type=code&client_id=%s&redirect_uri=%s&scope=%s",
-            authorizationUri, clientId, redirectUri, scope);
+            authorizationUri, clientId, encodedRedirect, encodedScope);
+    }
+
+    private String urlEncode(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            // UTF-8 is always supported; fallback to original value if ever thrown
+            return value;
+        }
     }
 }

@@ -1,9 +1,8 @@
 package com.socialmedia.editor.controller;
 
 import com.socialmedia.editor.model.Post;
-import com.socialmedia.editor.model.SocialMediaAccount;
 import com.socialmedia.editor.model.User;
-import com.socialmedia.editor.repository.UserRepository;
+import com.socialmedia.editor.service.AuthService;
 import com.socialmedia.editor.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,24 +11,25 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/posts")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PostController {
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
+
+    public PostController(PostService postService, AuthService authService) {
+        this.postService = postService;
+        this.authService = authService;
+    }
 
     @GetMapping
     public ResponseEntity<List<Post>> getPosts(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             List<Post> posts = postService.getPostsByUser(user);
             return ResponseEntity.ok(posts);
@@ -41,8 +41,7 @@ public class PostController {
     @GetMapping("/drafts")
     public ResponseEntity<List<Post>> getDraftPosts(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             List<Post> posts = postService.getDraftPostsByUser(user);
             return ResponseEntity.ok(posts);
@@ -54,8 +53,7 @@ public class PostController {
     @GetMapping("/published")
     public ResponseEntity<List<Post>> getPublishedPosts(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             List<Post> posts = postService.getPublishedPostsByUser(user);
             return ResponseEntity.ok(posts);
@@ -67,8 +65,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<Post> getPost(@PathVariable Long postId, Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             Post post = postService.getPostById(postId, user);
             return ResponseEntity.ok(post);
@@ -83,8 +80,7 @@ public class PostController {
     public ResponseEntity<?> createPost(@RequestBody CreatePostRequest request,
                                       Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             Post post = postService.createPost(user, request.getContent(), request.getTitle(),
                     request.getReferences());
@@ -99,8 +95,7 @@ public class PostController {
                                       @RequestBody UpdatePostRequest request,
                                       Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             Post post = postService.updatePost(postId, request.getContent(), request.getTitle(),
                     request.getReferences(), user);
@@ -117,8 +112,7 @@ public class PostController {
                                         @RequestBody SchedulePostRequest request,
                                         Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             Post post = postService.schedulePost(postId, request.getScheduledTime(), user);
             return ResponseEntity.ok(post);
@@ -133,8 +127,7 @@ public class PostController {
     public ResponseEntity<?> publishPost(@PathVariable Long postId,
                                        Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             Post post = postService.publishPost(postId, user);
             return ResponseEntity.ok(post);
@@ -149,8 +142,7 @@ public class PostController {
     public ResponseEntity<String> deletePost(@PathVariable Long postId,
                                            Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             postService.deletePost(postId, user);
             return ResponseEntity.ok("Post deleted successfully");

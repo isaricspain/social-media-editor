@@ -1,16 +1,32 @@
 package com.socialmedia.editor.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 public class LinkedInProfileDto {
 
     private String id;
 
     @JsonProperty("firstName")
-    private FirstName firstName;
+    private MultiLocaleString firstName;
 
     @JsonProperty("lastName")
-    private LastName lastName;
+    private MultiLocaleString lastName;
+
+    @JsonProperty("headline")
+    private MultiLocaleString headline;
+
+    @JsonProperty("localizedFirstName")
+    private String localizedFirstName;
+
+    @JsonProperty("localizedLastName")
+    private String localizedLastName;
+
+    @JsonProperty("localizedHeadline")
+    private String localizedHeadline;
+
+    @JsonProperty("vanityName")
+    private String vanityName;
 
     @JsonProperty("profilePicture")
     private ProfilePicture profilePicture;
@@ -25,20 +41,60 @@ public class LinkedInProfileDto {
         this.id = id;
     }
 
-    public FirstName getFirstName() {
+    public MultiLocaleString getFirstName() {
         return firstName;
     }
 
-    public void setFirstName(FirstName firstName) {
+    public void setFirstName(MultiLocaleString firstName) {
         this.firstName = firstName;
     }
 
-    public LastName getLastName() {
+    public MultiLocaleString getLastName() {
         return lastName;
     }
 
-    public void setLastName(LastName lastName) {
+    public void setLastName(MultiLocaleString lastName) {
         this.lastName = lastName;
+    }
+
+    public MultiLocaleString getHeadline() {
+        return headline;
+    }
+
+    public void setHeadline(MultiLocaleString headline) {
+        this.headline = headline;
+    }
+
+    public String getLocalizedFirstName() {
+        return localizedFirstName;
+    }
+
+    public void setLocalizedFirstName(String localizedFirstName) {
+        this.localizedFirstName = localizedFirstName;
+    }
+
+    public String getLocalizedLastName() {
+        return localizedLastName;
+    }
+
+    public void setLocalizedLastName(String localizedLastName) {
+        this.localizedLastName = localizedLastName;
+    }
+
+    public String getLocalizedHeadline() {
+        return localizedHeadline;
+    }
+
+    public void setLocalizedHeadline(String localizedHeadline) {
+        this.localizedHeadline = localizedHeadline;
+    }
+
+    public String getVanityName() {
+        return vanityName;
+    }
+
+    public void setVanityName(String vanityName) {
+        this.vanityName = vanityName;
     }
 
     public ProfilePicture getProfilePicture() {
@@ -58,6 +114,16 @@ public class LinkedInProfileDto {
     }
 
     public String getFullName() {
+        if (localizedFirstName != null && localizedLastName != null) {
+            return localizedFirstName + " " + localizedLastName;
+        }
+        if (localizedFirstName != null) {
+            return localizedFirstName;
+        }
+        if (localizedLastName != null) {
+            return localizedLastName;
+        }
+
         String fullName = "";
         if (firstName != null && firstName.localized != null && !firstName.localized.isEmpty()) {
             fullName += firstName.localized.values().iterator().next();
@@ -70,46 +136,30 @@ public class LinkedInProfileDto {
     }
 
     public String getProfileImageUrl() {
-        if (profilePicture != null &&
-            profilePicture.displayImage != null &&
-            profilePicture.displayImage.elements != null &&
-            !profilePicture.displayImage.elements.isEmpty()) {
-
-            DisplayImageElement element = profilePicture.displayImage.elements.get(0);
-            if (element.identifiers != null && !element.identifiers.isEmpty()) {
-                return element.identifiers.get(0).identifier;
-            }
+        if (profilePicture != null) {
+            return profilePicture.displayImage;
         }
         return null;
     }
 
-    public static class FirstName {
+    public static class MultiLocaleString {
         @JsonProperty("localized")
-        public java.util.Map<String, String> localized;
+        public Map<String, String> localized;
+
+        @JsonProperty("preferredLocale")
+        public PreferredLocale preferredLocale;
     }
 
-    public static class LastName {
-        @JsonProperty("localized")
-        public java.util.Map<String, String> localized;
+    public static class PreferredLocale {
+        @JsonProperty("country")
+        public String country;
+
+        @JsonProperty("language")
+        public String language;
     }
 
     public static class ProfilePicture {
         @JsonProperty("displayImage")
-        public DisplayImage displayImage;
-    }
-
-    public static class DisplayImage {
-        @JsonProperty("elements")
-        public java.util.List<DisplayImageElement> elements;
-    }
-
-    public static class DisplayImageElement {
-        @JsonProperty("identifiers")
-        public java.util.List<Identifier> identifiers;
-    }
-
-    public static class Identifier {
-        @JsonProperty("identifier")
-        public String identifier;
+        public String displayImage;
     }
 }

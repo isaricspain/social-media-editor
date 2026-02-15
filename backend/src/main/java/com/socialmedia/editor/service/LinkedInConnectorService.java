@@ -50,7 +50,8 @@ public class LinkedInConnectorService {
 
         return webClient.post()
                 .uri(linkedInConfig.getTokenUri())
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
                 .bodyToMono(LinkedInTokenResponseDto.class)
@@ -58,7 +59,7 @@ public class LinkedInConnectorService {
                 .doOnError(error -> logger.error("Error exchanging authorization code: ", error))
                 .onErrorMap(WebClientResponseException.class, ex -> {
                     logger.error("LinkedIn API error response: {}", ex.getResponseBodyAsString());
-                    return new RuntimeException("Failed to exchange authorization code: " + ex.getMessage());
+                    return new RuntimeException("Failed to exchange authorization code: " + ex.getStatusCode() + " - " + ex.getResponseBodyAsString());
                 });
     }
 
@@ -71,7 +72,8 @@ public class LinkedInConnectorService {
 
         return webClient.post()
                 .uri(linkedInConfig.getTokenUri())
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
                 .bodyToMono(LinkedInTokenResponseDto.class)
@@ -79,13 +81,13 @@ public class LinkedInConnectorService {
                 .doOnError(error -> logger.error("Error refreshing access token: ", error))
                 .onErrorMap(WebClientResponseException.class, ex -> {
                     logger.error("LinkedIn refresh token error: {}", ex.getResponseBodyAsString());
-                    return new RuntimeException("Failed to refresh access token: " + ex.getMessage());
+                    return new RuntimeException("Failed to refresh access token: " + ex.getStatusCode() + " - " + ex.getResponseBodyAsString());
                 });
     }
 
     public Mono<LinkedInProfileDto> getUserProfile(String accessToken) {
         String profileUrl = linkedInConfig.getApiBaseUrl() +
-            "/people/~:(id,firstName,lastName,profilePicture(displayImage~:playableStreams))";
+            "/me";
 
         return webClient.get()
                 .uri(profileUrl)
@@ -101,27 +103,9 @@ public class LinkedInConnectorService {
                 });
     }
 
-    public Mono<String> getUserEmail(String accessToken) {
-        String emailUrl = linkedInConfig.getApiBaseUrl() + "/emailAddress?q=members&projection=(elements*(handle~))";
-
-        return webClient.get()
-                .uri(emailUrl)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .retrieve()
-                .bodyToMono(String.class)
-                .timeout(Duration.ofSeconds(30))
-                .map(this::extractEmailFromResponse)
-                .doOnError(error -> logger.error("Error fetching user email: ", error))
-                .onErrorMap(WebClientResponseException.class, ex -> {
-                    logger.error("LinkedIn email API error: {}", ex.getResponseBodyAsString());
-                    return new RuntimeException("Failed to fetch user email: " + ex.getMessage());
-                });
-    }
-
     public Mono<LinkedInStatsDto> getUserStats(String accessToken) {
         String networkInfoUrl = linkedInConfig.getApiBaseUrl() +
-            "/people/~:(id,numConnections,numConnectionsRange)?projection=(numConnections,numConnectionsRange)";
+            "/userinfo";
 
         return webClient.get()
                 .uri(networkInfoUrl)

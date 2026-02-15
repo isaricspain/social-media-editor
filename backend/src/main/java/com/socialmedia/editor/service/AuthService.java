@@ -8,6 +8,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -85,5 +86,10 @@ public class AuthService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public User getCurrentUser(Authentication authentication) throws IllegalAccessException {
+        return userRepository.findByUsername(((User) authentication.getPrincipal()).getUsername())
+                .orElseThrow(() -> new IllegalAccessException("User %s not found".formatted(authentication.getName())));
     }
 }

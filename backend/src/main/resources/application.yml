@@ -7,7 +7,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -26,7 +26,7 @@ jwt:
 
 gemini:
   api-key: ${GEMINI_API_KEY:}
-  model: gemini-1.5-flash-latest
+  model: gemini-2.5-flash
   temperature: 0.7
   max-tokens: 2048
 
@@ -34,5 +34,5 @@ linkedin:
   oauth:
     client-id: ${LINKEDIN_CLIENT_ID:your-client-id}
     client-secret: ${LINKEDIN_CLIENT_SECRET:your-client-secret}
-    redirect-uri: ${LINKEDIN_REDIRECT_URI:http://localhost:8080/api/oauth/linkedin/callback}
-    scope: r_liteprofile,r_emailaddress,w_member_social
+    redirect-uri: ${LINKEDIN_REDIRECT_URI:http://localhost:3000/linkedin/callback}
+    scope: "r_basicprofile,w_member_social"

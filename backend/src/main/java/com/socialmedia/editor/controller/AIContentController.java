@@ -3,38 +3,42 @@ package com.socialmedia.editor.controller;
 import com.socialmedia.editor.dto.AIContentRequest;
 import com.socialmedia.editor.dto.AIContentResponse;
 import com.socialmedia.editor.model.User;
-import com.socialmedia.editor.repository.UserRepository;
 import com.socialmedia.editor.service.AIContentService;
+import com.socialmedia.editor.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import static org.springframework.http.ResponseEntity.badRequest;
+import static org.springframework.http.ResponseEntity.ok;
+
 @RestController
 @RequestMapping("/api/ai")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AIContentController {
 
-    @Autowired
-    private AIContentService aiContentService;
+    private final AIContentService aiContentService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
+
+    public AIContentController(AIContentService aiContentService, AuthService authService) {
+        this.aiContentService = aiContentService;
+        this.authService = authService;
+    }
 
     @PostMapping("/generate")
     public ResponseEntity<AIContentResponse> generateContent(
             @Valid @RequestBody AIContentRequest request,
             Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
+            User user = authService.getCurrentUser(authentication);
             AIContentResponse response = aiContentService.generateContent(request);
-            return ResponseEntity.ok(response);
+            return ok(response);
         } catch (Exception e) {
             AIContentResponse errorResponse = new AIContentResponse("Failed to generate content", false);
-            return ResponseEntity.badRequest().body(errorResponse);
+            return badRequest().body(errorResponse);
         }
     }
 
@@ -43,19 +47,18 @@ public class AIContentController {
             @Valid @RequestBody AIContentRequest request,
             Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             if (request.getExistingContent() == null || request.getExistingContent().trim().isEmpty()) {
                 AIContentResponse errorResponse = new AIContentResponse("Existing content is required for improvement", false);
-                return ResponseEntity.badRequest().body(errorResponse);
+                return badRequest().body(errorResponse);
             }
 
             AIContentResponse response = aiContentService.improveContent(request);
-            return ResponseEntity.ok(response);
+            return ok(response);
         } catch (Exception e) {
             AIContentResponse errorResponse = new AIContentResponse("Failed to improve content", false);
-            return ResponseEntity.badRequest().body(errorResponse);
+            return badRequest().body(errorResponse);
         }
     }
 
@@ -64,14 +67,13 @@ public class AIContentController {
             @Valid @RequestBody AIContentRequest request,
             Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             AIContentResponse response = aiContentService.generateHashtags(request);
-            return ResponseEntity.ok(response);
+            return ok(response);
         } catch (Exception e) {
             AIContentResponse errorResponse = new AIContentResponse("Failed to generate hashtags", false);
-            return ResponseEntity.badRequest().body(errorResponse);
+            return badRequest().body(errorResponse);
         }
     }
 
@@ -80,33 +82,31 @@ public class AIContentController {
             @Valid @RequestBody AIContentRequest request,
             Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             if (request.getExistingContent() == null || request.getExistingContent().trim().isEmpty()) {
                 if (request.getPrompt() == null || request.getPrompt().trim().isEmpty()) {
                     AIContentResponse errorResponse = new AIContentResponse("Content or prompt is required for variations", false);
-                    return ResponseEntity.badRequest().body(errorResponse);
+                    return badRequest().body(errorResponse);
                 }
             }
 
             AIContentResponse response = aiContentService.generateVariations(request);
-            return ResponseEntity.ok(response);
+            return ok(response);
         } catch (Exception e) {
             AIContentResponse errorResponse = new AIContentResponse("Failed to generate variations", false);
-            return ResponseEntity.badRequest().body(errorResponse);
+            return badRequest().body(errorResponse);
         }
     }
 
     @GetMapping("/status")
     public ResponseEntity<String> getStatus(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
-            return ResponseEntity.ok("AI Content service is available");
+            return ok("AI Content service is available");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("AI Content service unavailable");
+            return badRequest().body("AI Content service unavailable");
         }
     }
 }

@@ -2,7 +2,7 @@ package com.socialmedia.editor.controller;
 
 import com.socialmedia.editor.dto.DashboardStatsDto;
 import com.socialmedia.editor.model.User;
-import com.socialmedia.editor.repository.UserRepository;
+import com.socialmedia.editor.service.AuthService;
 import com.socialmedia.editor.service.DashboardService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +21,19 @@ public class DashboardController {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardController.class);
 
-    @Autowired
-    private DashboardService dashboardService;
+    private final DashboardService dashboardService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
+
+    public DashboardController(DashboardService dashboardService, AuthService authService) {
+        this.dashboardService = dashboardService;
+        this.authService = authService;
+    }
 
     @GetMapping("/stats")
     public ResponseEntity<DashboardStatsDto> getDashboardStats(Authentication authentication) {
         try {
-            User user = getCurrentUser(authentication);
+            User user = authService.getCurrentUser(authentication);
             DashboardStatsDto stats = dashboardService.getDashboardStats(user);
             return ok(stats);
         } catch (Exception e) {
@@ -42,16 +45,11 @@ public class DashboardController {
     @PostMapping("/refresh")
     public ResponseEntity<String> refreshAccountStats(Authentication authentication) {
         try {
-            User user = getCurrentUser(authentication);
+            User user = authService.getCurrentUser(authentication);
             dashboardService.refreshAllAccountStats(user);
             return ok("Account stats refreshed successfully");
         } catch (Exception e) {
             return badRequest().body("Failed to refresh account stats");
         }
-    }
-
-    private User getCurrentUser(Authentication authentication) throws IllegalAccessException {
-        return userRepository.findByUsername(((User) authentication.getPrincipal()).getUsername())
-                .orElseThrow(() -> new IllegalAccessException("User %s not found".formatted(authentication.getName())));
     }
 }
