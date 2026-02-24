@@ -18,7 +18,6 @@ public class SocialMediaAccount {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @NotBlank
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Platform platform;
@@ -33,10 +32,10 @@ public class SocialMediaAccount {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "access_token")
+    @Column(name = "access_token", columnDefinition = "TEXT")
     private String accessToken;
 
-    @Column(name = "refresh_token")
+    @Column(name = "refresh_token", columnDefinition = "TEXT")
     private String refreshToken;
 
     @Column(name = "followers_count")

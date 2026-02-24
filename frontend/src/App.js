@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import LoginScreen from './components/LoginScreen';
@@ -29,6 +29,15 @@ function App() {
     setUser(null);
     localStorage.removeItem('token');
   };
+
+  // On initial load, set logged-in state based on presence of JWT in localStorage
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+      // Optionally, we could decode or fetch user info here; for now keep existing null user until login flow provides it
+    }
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>

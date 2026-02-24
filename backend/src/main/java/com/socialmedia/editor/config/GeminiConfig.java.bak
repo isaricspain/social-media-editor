@@ -1,0 +1,53 @@
+package com.socialmedia.editor.config;
+
+import com.google.ai.generativelanguage.v1beta.GenerativeServiceClient;
+import com.google.ai.generativelanguage.v1beta.GenerativeServiceSettings;
+import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.api.gax.grpc.InstantiatingGrpcChannelProvider;
+import com.google.api.gax.rpc.ApiKeyCredentials;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+
+@Configuration
+public class GeminiConfig {
+
+    @Value("${gemini.api-key}")
+    private String apiKey;
+
+    @Value("${gemini.model}")
+    private String model;
+
+    @Value("${gemini.temperature}")
+    private double temperature;
+
+    @Value("${gemini.max-tokens}")
+    private int maxTokens;
+
+    @Bean
+    public GenerativeServiceClient generativeServiceClient() throws IOException {
+        GenerativeServiceSettings settings = GenerativeServiceSettings.newBuilder()
+                .setCredentialsProvider(FixedCredentialsProvider.create(
+                        ApiKeyCredentials.create(apiKey)))
+                .setTransportChannelProvider(
+                        InstantiatingGrpcChannelProvider.newBuilder()
+                                .build())
+                .build();
+
+        return GenerativeServiceClient.create(settings);
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public double getTemperature() {
+        return temperature;
+    }
+
+    public int getMaxTokens() {
+        return maxTokens;
+    }
+}

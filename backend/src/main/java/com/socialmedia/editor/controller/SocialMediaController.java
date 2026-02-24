@@ -2,31 +2,38 @@ package com.socialmedia.editor.controller;
 
 import com.socialmedia.editor.model.SocialMediaAccount;
 import com.socialmedia.editor.model.User;
-import com.socialmedia.editor.repository.UserRepository;
+import com.socialmedia.editor.service.AuthService;
+import com.socialmedia.editor.service.LinkedInConnectorService;
 import com.socialmedia.editor.service.SocialMediaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/social-media")
 @CrossOrigin(origins = "http://localhost:3000")
 public class SocialMediaController {
 
-    @Autowired
-    private SocialMediaService socialMediaService;
+    private final SocialMediaService socialMediaService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
+
+    private final LinkedInConnectorService linkedInConnectorService;
+
+    public SocialMediaController(SocialMediaService socialMediaService, AuthService authService, LinkedInConnectorService linkedInConnectorService) {
+        this.socialMediaService = socialMediaService;
+        this.authService = authService;
+        this.linkedInConnectorService = linkedInConnectorService;
+    }
 
     @GetMapping("/accounts")
     public ResponseEntity<List<SocialMediaAccount>> getAccounts(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = authService.getCurrentUser(authentication);
 
             List<SocialMediaAccount> accounts = socialMediaService.getActiveAccountsByUser(user);
             return ResponseEntity.ok(accounts);
@@ -39,8 +46,15 @@ public class SocialMediaController {
     public ResponseEntity<?> connectAccount(@RequestBody ConnectAccountRequest request,
                                           Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            if (request.getPlatform() == SocialMediaAccount.Platform.LINKEDIN) {
+                String authorizationUrl = linkedInConnectorService.getAuthorizationUrl();
+                Map<String, String> response = new HashMap<>();
+                response.put("authorizationUrl", authorizationUrl);
+                response.put("platform", "LINKEDIN");
+                return ResponseEntity.ok(response);
+            }
+
+            User user = authService.getCurrentUser(authentication);
 
             SocialMediaAccount account = socialMediaService.addAccount(
                     user,
@@ -63,9 +77,7 @@ public class SocialMediaController {
     public ResponseEntity<String> disconnectAccount(@PathVariable Long accountId,
                                                   Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
+            User user = authService.getCurrentUser(authentication);
             socialMediaService.disconnectAccount(accountId, user);
             return ResponseEntity.ok("Account disconnected successfully");
         } catch (RuntimeException e) {
@@ -76,12 +88,8 @@ public class SocialMediaController {
     }
 
     @PostMapping("/accounts/{accountId}/refresh")
-    public ResponseEntity<String> refreshAccountStats(@PathVariable Long accountId,
-                                                     Authentication authentication) {
+    public ResponseEntity<String> refreshAccountStats(@PathVariable Long accountId) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
             socialMediaService.refreshAccountStats(accountId);
             return ResponseEntity.ok("Account stats refreshed successfully");
         } catch (Exception e) {
